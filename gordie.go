@@ -1,4 +1,4 @@
-package main
+package gordie
 
 import (
 	"encoding/json"
@@ -28,7 +28,14 @@ type HeartBeat struct {
 	D  int `json:"d"`
 }
 
-func main() {
+type Client struct {
+	Token   string
+	Intents int
+
+	ws *websocket.Conn
+}
+
+func (c *Client) Start() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
@@ -49,13 +56,13 @@ func main() {
 
 	log.Printf("Connecting to %s", gatewayUrl.Url)
 
-	c, _, err := websocket.DefaultDialer.Dial(gatewayUrl.Url, nil)
+	c.ws, _, err = websocket.DefaultDialer.Dial(gatewayUrl.Url, nil)
 	if err != nil {
 		log.Fatalln(err)
 		return
 	}
 
-	defer c.Close()
+	defer c.ws.Close()
 
 	done := make(chan struct{})
 
@@ -65,7 +72,7 @@ func main() {
 		var firstMessage = true
 
 		for {
-			mt, message, err := c.ReadMessage()
+			mt, message, err := c.ws.ReadMessage()
 			if err != nil {
 				log.Println("read:", err)
 				return
@@ -73,6 +80,7 @@ func main() {
 			log.Printf("recv: %s, type: %d", message, mt)
 
 			if firstMessage {
+				// set up heartbeats
 				var hello HelloEvent
 				json.Unmarshal(message, &hello)
 
@@ -82,11 +90,13 @@ func main() {
 					for {
 						time.Sleep(time.Millisecond * time.Duration(hello.D.HeartbeatInterval))
 
-						c.WriteJSON(HeartBeat{
+						c.ws.WriteJSON(HeartBeat{
 							Op: 1,
 						})
 					}
 				}()
+
+				// identify
 
 			}
 		}
@@ -102,7 +112,7 @@ func main() {
 		case <-interrupt:
 			log.Println("interrupt")
 
-			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			err := c.ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("write close:", err)
 				return
