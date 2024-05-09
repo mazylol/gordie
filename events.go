@@ -9,8 +9,8 @@ type Event struct {
 		GuildId   string `json:"guild_id"`
 		ChannelId string `json:"channel_id"`
 		User      struct {
-			Username string `json:"username"`
-			Id string `json:"id"`
+			Username      string `json:"username"`
+			Id            string `json:"id"`
 			Discriminator string `json:"discriminator"`
 		} `json:"user"`
 	} `json:"d"`
