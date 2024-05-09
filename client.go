@@ -1,28 +1,37 @@
+/*
+Gordie is a simple wrapper over the Discord API. It aims to be fully complete but also easy to use.
+
+# Ping pong example:
+
+	func main() {
+		client := gordie.Client {
+			Token: "your-token-here",
+			Intents: 14023
+		}
+
+		client.AddHandler("MESSAGE_CREATE", func(e *gordie.Event) {
+			if e.D.Content == "!ping" {
+				client.SendMessage(e.D.ChannelId, "Pong!")
+			}
+		})
+
+		client.Start()
+	}
+*/
 package gordie
 
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
-
-type Gateway struct {
-	Url string `json:"url"`
-}
-
-type HelloEvent struct {
-	Op int `json:"op"`
-	D  struct {
-		HeartbeatInterval int `json:"heartbeat_interval"`
-	} `json:"d"`
-}
 
 type HeartBeat struct {
 	Op int `json:"op"`
@@ -38,17 +47,7 @@ type Client struct {
 	handlers map[string]func(e *Event)
 }
 
-type Event struct {
-	T  string `json:"t"`
-	S  int    `json:"s"`
-	Op int    `json:"op"`
-	D  struct {
-		Content   string `json:"content"`
-		GuildId   string `json:"guild_id"`
-		ChannelId string `json:"channel_id"`
-	} `json:"d"`
-}
-
+// Add an event handler
 func (c *Client) AddHandler(eventType string, handler func(e *Event)) {
 	if c.handlers == nil {
 		c.handlers = make(map[string]func(e *Event))
@@ -91,27 +90,15 @@ func (c *Client) Start() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	gatewayUrlRequest, err := http.Get("https://discord.com/api/v10/gateway")
+	gatewayUrl := GetGatewayUrl()
+
+	log.Printf("Connecting to %s", gatewayUrl)
+
+	var err error
+
+	c.ws, _, err = websocket.DefaultDialer.Dial(gatewayUrl, nil)
 	if err != nil {
 		log.Fatalln(err)
-		return
-	}
-
-	gatewayUrlRequestBody, err := io.ReadAll(gatewayUrlRequest.Body)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-
-	var gatewayUrl Gateway
-	json.Unmarshal(gatewayUrlRequestBody, &gatewayUrl)
-
-	log.Printf("Connecting to %s", gatewayUrl.Url)
-
-	c.ws, _, err = websocket.DefaultDialer.Dial(gatewayUrl.Url, nil)
-	if err != nil {
-		log.Fatalln(err)
-		return
 	}
 
 	defer c.ws.Close()
@@ -164,7 +151,7 @@ func (c *Client) Start() {
 						"token":   c.Token,
 						"intents": c.Intents,
 						"properties": map[string]string{
-							"os":      "linux",
+							"os":      runtime.GOOS,
 							"browser": "gordie",
 							"device":  "gordie",
 						},
