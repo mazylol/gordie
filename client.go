@@ -42,7 +42,8 @@ type Client struct {
 	Token   string
 	Intents int
 
-	ws *websocket.Conn
+	ws   *websocket.Conn
+	http *http.Client
 
 	handlers map[string]func(e *Event)
 }
@@ -78,8 +79,7 @@ func (c Client) SendMessage(channelId string, content string) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bot "+c.Token)
 
-	client := &http.Client{}
-	_, err = client.Do(req)
+	_, err = c.http.Do(req)
 	if err != nil {
 		log.Println("error while making POST request:", err)
 		return
@@ -89,6 +89,8 @@ func (c Client) SendMessage(channelId string, content string) {
 func (c *Client) Start() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
+
+	c.http = &http.Client{}
 
 	gatewayUrl := GetGatewayUrl()
 
@@ -111,12 +113,12 @@ func (c *Client) Start() {
 		var firstMessage = true
 
 		for {
-			mt, message, err := c.ws.ReadMessage()
+			_, message, err := c.ws.ReadMessage()
 			if err != nil {
 				log.Println("read:", err)
 				return
 			}
-			log.Printf("recv: %s, type: %d", message, mt)
+			//log.Printf("recv: %s", message)
 
 			var event Event
 			json.Unmarshal(message, &event)
@@ -125,6 +127,10 @@ func (c *Client) Start() {
 				if handler, ok := c.handlers[event.T]; ok {
 					handler(&event)
 				}
+			}
+
+			if event.T == "READY" {
+				log.Printf("Logged in as %s#%s", event.D.User.Username, event.D.User.Discriminator)
 			}
 
 			if firstMessage {
