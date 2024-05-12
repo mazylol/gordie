@@ -2,6 +2,7 @@ package gordie
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -25,5 +26,5 @@ func GetGatewayUrl() string {
 	var gatewayUrl Gateway
 	json.Unmarshal(gatewayUrlRequestBody, &gatewayUrl)
 
-	return gatewayUrl.Url
+	return fmt.Sprintf("%s/?v=10&encoding=json", gatewayUrl.Url)
 }

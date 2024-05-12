@@ -5,14 +5,82 @@ type EventRaw struct {
 	S  int    `json:"s"`
 	Op int    `json:"op"`
 	D  struct {
-		Content   string `json:"content"`
-		GuildId   string `json:"guild_id"`
-		ChannelId string `json:"channel_id"`
-		User      struct {
+		Type              int    `json:"type"`
+		TTS               bool   `json:"tts"`
+		Timestamp         string `json:"timestamp"`
+		ReferencedMessage struct {
+			Content string `json:"content"`
+		} `json:"referenced_message"`
+		Pinned   bool   `json:"pinned"`
+		Nonce    string `json:"nonce"`
+		Mentions []struct {
+			Username    string `json:"username"`
+			PublicFlags int    `json:"public_flags"`
+			Member      struct {
+				Roles                      []string `json:"roles"`
+				PremiumSince               string   `json:"premium_since"`
+				Pending                    bool     `json:"pending"`
+				Nick                       string   `json:"nick"`
+				Mute                       bool     `json:"mute"`
+				JoinedAt                   string   `json:"joined_at"`
+				Flags                      int      `json:"flags"`
+				Deaf                       bool     `json:"deaf"`
+				CommunicationDisabledUntil string   `json:"communication_disabled_until"`
+				Avatar                     string   `json:"avatar"`
+			} `json:"member"`
+			Id                   string `json:"id"`
+			GlobalName           string `json:"global_name"`
+			Discriminator        string `json:"discriminator"`
+			Clan                 string `json:"clan"`
+			Bot                  bool   `json:"bot"`
+			AvatarDecorationData string `json:"avatar_decoration_data"`
+			Avatar               string `json:"avatar"`
+		} `json:"mentions"`
+		MentionRoles    []string `json:"mention_roles"`
+		MentionEveryone bool     `json:"mention_everyone"`
+		Member          struct {
+			Roles                      []string `json:"roles"`
+			PremiumSince               string   `json:"premium_since"`
+			Pending                    bool     `json:"pending"`
+			Nick                       string   `json:"nick"`
+			Mute                       bool     `json:"mute"`
+			JoinedAt                   string   `json:"joined_at"`
+			Flags                      int      `json:"flags"`
+			Deaf                       bool     `json:"deaf"`
+			CommunicationDisabledUntil string   `json:"communication_disabled_until"`
+			Avatar                     string   `json:"avatar"`
+		} `json:"member"`
+		Id              string     `json:"id"`
+		Flags           int        `json:"flags"`
+		Embeds          []struct{} `json:"embeds"`
+		EditedTimestamp string     `json:"edited_timestamp"`
+		Content         string     `json:"content"`
+		Components      []struct{} `json:"components"`
+		ChannelId       string     `json:"channel_id"`
+		Author          struct {
+			Username             string `json:"username"`
+			PublicFlags          int    `json:"public_flags"`
+			Id                   string `json:"id"`
+			GlobalName           string `json:"global_name"`
+			Discriminator        string `json:"discriminator"`
+			Clan                 string `json:"clan"`
+			AvatarDecorationData string `json:"avatar_decoration_data"`
+			Avatar               string `json:"avatar"`
+		} `json:"author"`
+		User struct {
+			Verified      bool   `json:"verified"`
 			Username      string `json:"username"`
+			MFAEnabled    bool   `json:"mfa_enabled"`
 			Id            string `json:"id"`
+			GlobalName    string `json:"global_name"`
+			Flags         int    `json:"flags"`
+			Email         string `json:"email"`
 			Discriminator string `json:"discriminator"`
+			Clan          string `json:"clan"`
+			Avatar        string `json:"avatar"`
 		} `json:"user"`
+		Attachments []struct{} `json:"attachments"`
+		GuildId     string     `json:"guild_id"`
 	} `json:"d"`
 }
 
@@ -24,15 +92,28 @@ func (e EventRaw) ToEvent() Event {
 		Content:   e.D.Content,
 		GuildId:   e.D.GuildId,
 		ChannelId: e.D.ChannelId,
+		Author: struct {
+			Username             string
+			PublicFlags          int
+			Id                   string
+			GlobalName           string
+			Discriminator        string
+			Clan                 string
+			AvatarDecorationData string
+			Avatar               string
+		}(e.D.Author),
 		User: struct {
+			Verified      bool
 			Username      string
+			MFAEnabled    bool
 			Id            string
+			GlobalName    string
+			Flags         int
+			Email         string
 			Discriminator string
-		}{
-			Username:      e.D.User.Username,
-			Id:            e.D.User.Id,
-			Discriminator: e.D.User.Discriminator,
-		},
+			Clan          string
+			Avatar        string
+		}(e.D.User),
 	}
 }
 
@@ -43,10 +124,27 @@ type Event struct {
 	Content   string
 	GuildId   string
 	ChannelId string
-	User      struct {
+	Author    struct {
+		Username             string
+		PublicFlags          int
+		Id                   string
+		GlobalName           string
+		Discriminator        string
+		Clan                 string
+		AvatarDecorationData string
+		Avatar               string
+	}
+	User struct {
+		Verified      bool
 		Username      string
+		MFAEnabled    bool
 		Id            string
+		GlobalName    string
+		Flags         int
+		Email         string
 		Discriminator string
+		Clan          string
+		Avatar        string
 	}
 }
 

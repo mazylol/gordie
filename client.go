@@ -118,7 +118,6 @@ func (c *Client) Start() {
 				log.Println("read:", err)
 				return
 			}
-			//log.Printf("recv: %s", message)
 
 			var eventRaw EventRaw
 			json.Unmarshal(message, &eventRaw)
