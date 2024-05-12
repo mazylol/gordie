@@ -120,8 +120,10 @@ func (c *Client) Start() {
 			}
 			//log.Printf("recv: %s", message)
 
-			var event Event
-			json.Unmarshal(message, &event)
+			var eventRaw EventRaw
+			json.Unmarshal(message, &eventRaw)
+
+			event := eventRaw.ToEvent()
 
 			if event.T == "MESSAGE_CREATE" {
 				if handler, ok := c.handlers[event.T]; ok {
@@ -130,19 +132,21 @@ func (c *Client) Start() {
 			}
 
 			if event.T == "READY" {
-				log.Printf("Logged in as %s#%s", event.D.User.Username, event.D.User.Discriminator)
+				log.Printf("Logged in as %s#%s", event.User.Username, event.User.Discriminator)
 			}
 
 			if firstMessage {
 				// set up heartbeats
-				var hello HelloEvent
-				json.Unmarshal(message, &hello)
+				var helloEventRaw HelloEventRaw
+				json.Unmarshal(message, &helloEventRaw)
+
+				hello := helloEventRaw.ToHelloEvent()
 
 				firstMessage = false
 
 				go func() {
 					for {
-						time.Sleep(time.Millisecond * time.Duration(hello.D.HeartbeatInterval))
+						time.Sleep(time.Millisecond * time.Duration(hello.HeartBeatInterval))
 
 						c.ws.WriteJSON(HeartBeat{
 							Op: 1,

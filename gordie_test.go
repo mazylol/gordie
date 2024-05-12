@@ -13,8 +13,8 @@ func TestConnect(t *testing.T) {
 	}
 
 	client.AddHandler("MESSAGE_CREATE", func(e *gordie.Event) {
-		if e.D.Content == "!ping" {
-			client.SendMessage(e.D.ChannelId, "Pong!")
+		if e.Content == "!ping" {
+			client.SendMessage(e.ChannelId, "Pong!")
 		}
 	})
 
