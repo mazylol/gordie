@@ -1,5 +1,19 @@
 package gordie
 
+const (
+	OP_Dispatch              uint8 = 0
+	OP_Heartbeat             uint8 = 1
+	OP_Identify              uint8 = 2
+	OP_Presence_Update       uint8 = 3
+	OP_Voice_State_Update    uint8 = 4
+	OP_Resume                uint8 = 6
+	OP_Reconnect             uint8 = 7
+	OP_Request_Guild_Members uint8 = 8
+	OP_Invalid_Session       uint8 = 9
+	OP_Hello                 uint8 = 10
+	OP_Heartbeat_ACK         uint8 = 11
+)
+
 type EventRaw struct {
 	T  string `json:"t"`
 	S  int    `json:"s"`
