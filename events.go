@@ -80,6 +80,7 @@ type EventRaw struct {
 			Clan                 string `json:"clan"`
 			AvatarDecorationData string `json:"avatar_decoration_data"`
 			Avatar               string `json:"avatar"`
+			Bot                  bool   `json:"bot"`
 		} `json:"author"`
 		User struct {
 			Verified      bool   `json:"verified"`
@@ -115,6 +116,7 @@ func (e EventRaw) ToEvent() Event {
 			Clan                 string
 			AvatarDecorationData string
 			Avatar               string
+			Bot                  bool
 		}(e.D.Author),
 		User: struct {
 			Verified      bool
@@ -147,6 +149,7 @@ type Event struct {
 		Clan                 string
 		AvatarDecorationData string
 		Avatar               string
+		Bot                  bool
 	}
 	User struct {
 		Verified      bool
