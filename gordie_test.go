@@ -43,7 +43,7 @@ func TestConnect(t *testing.T) {
 
 	client := gordie.Client{
 		Token:   vars["TOKEN"],
-		Intents: 14023,
+		Intents: 131071,
 	}
 
 	client.AddHandler("MESSAGE_CREATE", func(e *gordie.Event) {
