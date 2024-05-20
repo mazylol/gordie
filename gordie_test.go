@@ -1,14 +1,48 @@
 package gordie_test
 
 import (
+	"bufio"
+	"log"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/mazylol/gordie"
 )
 
+func loadDotEnv() map[string]string {
+	readFile, err := os.Open(".env")
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+	var fileLines []string
+
+	for fileScanner.Scan() {
+		fileLines = append(fileLines, fileScanner.Text())
+	}
+
+	readFile.Close()
+
+	varMap := make(map[string]string)
+
+	for _, line := range fileLines {
+		splitted := strings.Split(line, "=")
+
+		varMap[splitted[0]] = splitted[1]
+	}
+
+	return varMap
+}
+
 func TestConnect(t *testing.T) {
+	vars := loadDotEnv()
+
 	client := gordie.Client{
-		Token:   "33335",
+		Token:   vars["TOKEN"],
 		Intents: 14023,
 	}
 
