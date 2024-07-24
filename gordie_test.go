@@ -42,13 +42,30 @@ func TestConnect(t *testing.T) {
 	vars := loadDotEnv()
 
 	client := gordie.Client{
-		Token:   vars["TOKEN"],
-		Intents: 131071,
+		Token:         vars["TOKEN"],
+		ApplicationId: vars["APPLICATION_ID"],
+		Intents:       131071,
 	}
+
+	client.AddHandler("READY", func(e *gordie.Event) {
+		client.RegisterGuildCommand(vars["GUILD_ID"], gordie.SlashCommand{
+			Name:        "pingo",
+			Description: "Ping pong from gordie lib!",
+			Options:     nil,
+		})
+
+		log.Println("Commands registered!")
+	})
 
 	client.AddHandler("MESSAGE_CREATE", func(e *gordie.Event) {
 		if e.Content == "!ping" {
 			client.SendMessage(e.ChannelId, "Pong!")
+		}
+	})
+
+	client.AddHandler("INTERACTION_CREATE", func(e *gordie.Event) {
+		if e.Data.Name == "pingo" {
+			log.Println("Interaction received!")
 		}
 	})
 

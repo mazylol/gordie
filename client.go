@@ -39,8 +39,9 @@ type HeartBeat struct {
 }
 
 type Client struct {
-	Token   string
-	Intents int
+	Token         string
+	ApplicationId string
+	Intents       int
 
 	ws   *websocket.Conn
 	http *http.Client
@@ -71,6 +72,38 @@ func (c Client) SendMessage(channelId string, content string) {
 	payloadBuffer := bytes.NewBuffer(payloadBytes)
 
 	req, err := http.NewRequest("POST", "https://discord.com/api/v10/channels/"+channelId+"/messages", payloadBuffer)
+	if err != nil {
+		log.Println("error while creating request:", err)
+		return
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bot "+c.Token)
+
+	_, err = c.http.Do(req)
+	if err != nil {
+		log.Println("error while making POST request:", err)
+		return
+	}
+}
+
+func (c Client) RegisterGuildCommand(guildId string, command SlashCommand) {
+	payload := map[string]interface{}{
+		"name":        command.Name,
+		"description": command.Description,
+		"options":     command.Options,
+		"type":        1,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		log.Println("error while marshalling payload:", err)
+		return
+	}
+
+	payloadBuffer := bytes.NewBuffer(payloadBytes)
+
+	req, err := http.NewRequest("POST", "https://discord.com/api/v10/applications/"+c.ApplicationId+"/guilds/"+guildId+"/commands", payloadBuffer)
 	if err != nil {
 		log.Println("error while creating request:", err)
 		return
@@ -132,6 +165,15 @@ func (c *Client) Start() {
 
 			if event.T == "READY" {
 				log.Printf("Logged in as %s#%s", event.User.Username, event.User.Discriminator)
+				if handler, ok := c.handlers[event.T]; ok {
+					handler(&event)
+				}
+			}
+
+			if event.T == "INTERACTION_CREATE" {
+				if handler, ok := c.handlers[event.T]; ok {
+					handler(&event)
+				}
 			}
 
 			if firstMessage {

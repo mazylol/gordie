@@ -19,6 +19,12 @@ type EventRaw struct {
 	S  int    `json:"s"`
 	Op int    `json:"op"`
 	D  struct {
+		Data struct {
+			Type    int    `json:"type"`
+			Name    string `json:"name"`
+			Id      string `json:"id"`
+			GuildId string `json:"guild_id"`
+		} `json:"data"`
 		Type              int    `json:"type"`
 		TTS               bool   `json:"tts"`
 		Timestamp         string `json:"timestamp"`
@@ -101,9 +107,15 @@ type EventRaw struct {
 
 func (e EventRaw) ToEvent() Event {
 	return Event{
-		T:         e.T,
-		S:         e.S,
-		Op:        e.Op,
+		T:  e.T,
+		S:  e.S,
+		Op: e.Op,
+		Data: struct {
+			Type    int
+			Name    string
+			Id      string
+			GuildId string
+		}(e.D.Data),
 		Content:   e.D.Content,
 		GuildId:   e.D.GuildId,
 		ChannelId: e.D.ChannelId,
@@ -134,9 +146,15 @@ func (e EventRaw) ToEvent() Event {
 }
 
 type Event struct {
-	T         string
-	S         int
-	Op        int
+	T    string
+	S    int
+	Op   int
+	Data struct {
+		Type    int
+		Name    string
+		Id      string
+		GuildId string
+	}
 	Content   string
 	GuildId   string
 	ChannelId string
