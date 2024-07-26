@@ -15,10 +15,12 @@ const (
 )
 
 type EventRaw struct {
-	T  string `json:"t"`
-	S  int    `json:"s"`
-	Op int    `json:"op"`
-	D  struct {
+	T     string `json:"t"`
+	Token string `json:"token"`
+	Id    string `json:"id"`
+	S     int    `json:"s"`
+	Op    int    `json:"op"`
+	D     struct {
 		Data struct {
 			Type    int    `json:"type"`
 			Name    string `json:"name"`
@@ -107,9 +109,11 @@ type EventRaw struct {
 
 func (e EventRaw) ToEvent() Event {
 	return Event{
-		T:  e.T,
-		S:  e.S,
-		Op: e.Op,
+		T:     e.T,
+		Token: e.Token,
+		Id:    e.Id,
+		S:     e.S,
+		Op:    e.Op,
 		Data: struct {
 			Type    int
 			Name    string
@@ -146,10 +150,12 @@ func (e EventRaw) ToEvent() Event {
 }
 
 type Event struct {
-	T    string
-	S    int
-	Op   int
-	Data struct {
+	T     string
+	Token string
+	Id    string
+	S     int
+	Op    int
+	Data  struct {
 		Type    int
 		Name    string
 		Id      string

@@ -119,6 +119,38 @@ func (c Client) RegisterGuildCommand(guildId string, command SlashCommand) {
 	}
 }
 
+func (c Client) SendInteractionResponse(content string, interactionId string, interactionToken string) {
+	payload := map[string]interface{}{
+		"type": 4,
+		"data": map[string]interface{}{
+			"content": content,
+		},
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		log.Println("error while marshalling payload:", err)
+		return
+	}
+
+	payloadBuffer := bytes.NewBuffer(payloadBytes)
+
+	req, err := http.NewRequest("POST", "https://discord.com/api/v10/interactions/"+interactionId+"/"+interactionToken+"/callback", payloadBuffer)
+	if err != nil {
+		log.Println("error while creating request:", err)
+		return
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bot "+c.Token)
+
+	_, err = c.http.Do(req)
+	if err != nil {
+		log.Println("error while making POST request:", err)
+		return
+	}
+}
+
 func (c *Client) Start() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)

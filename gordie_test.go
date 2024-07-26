@@ -66,6 +66,8 @@ func TestConnect(t *testing.T) {
 	client.AddHandler("INTERACTION_CREATE", func(e *gordie.Event) {
 		if e.Data.Name == "pingo" {
 			log.Println("Interaction received!")
+			client.SendInteractionResponse("Pong!", e.Data.Id, e.Token)
+
 		}
 	})
 
